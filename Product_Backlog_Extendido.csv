@@ -1,0 +1,91 @@
+ID,Módulo,Prioridad,Rol (Usuario),Quiero (Acción),Para (Resultado),Valor Aportado,Criterios de Aceptación,Complejidad,Esfuerzo (Puntos de Historia),Responsable
+HU-001,Backend,Alta,Architect,Diseñar esquema DB,Soportar modelo B2G,Escalabilidad,"Tablas creadas, llaves foráneas y RLS activo",Alta,13,Estudiante 1
+HU-002,Backend,Alta,SysAdmin,Configurar proveedor Auth,Permitir login seguro,Seguridad,"Integración JWT, inicio sesión con email",Media,8,Estudiante 2
+HU-003,Backend,Alta,SysAdmin,Definir Políticas RLS,Proteger datos por rol,Privacidad,Agricultor solo ve sus datos; Min ve todo,Alta,13,Estudiante 3
+HU-004,Frontend,Media,GlobalOwner,Registrarse como SuperAdmin,Administrar todo el sistema,Control absoluto,Formulario de superadmin validado,Media,5,Estudiante 4
+HU-005,Frontend,Alta,GlobalOwner,Registrar Ministerios,Vender el sistema B2G,Expansión comercial,Endpoint protegido para creación de países,Media,5,Estudiante 5
+HU-006,Frontend,Alta,Ministerio,Registrar Cooperativas,Delegar control regional,Organización,"Formulario vinculado al ID del país, con validación",Media,5,Estudiante 6
+HU-007,Frontend,Alta,Cooperativa,Registrar Agricultores,Dar acceso al productor,Inclusión digital,Envío automático de credenciales por email,Media,5,Estudiante 1
+HU-008,Frontend,Alta,Todos,Iniciar sesión unificado,Acceder al dashboard,Seguridad,Validación de token y redirección por rol,Alta,8,Estudiante 2
+HU-009,Frontend,Media,Todos,Recuperar Contraseña,Resetear acceso si lo pierdo,Retención de usuario,"Correo enviado con link seguro, token expira en 1h",Media,5,Estudiante 3
+HU-010,Seguridad,Baja,Ministerio,Verificación 2FA,Garantizar accesos gubernamentales,Cumplimiento legal,Solicitud de código OTP por email,Alta,8,Estudiante 4
+HU-011,Backend,Alta,SysAdmin,Middleware Roles (RBAC),Filtrar rutas prohibidas,Seguridad de panel,Usuarios devueltos a index si intentan vulnerar,Alta,8,Estudiante 5
+HU-012,Frontend,Media,Todos,Sesión Persistente,No loguear a cada rato en el campo,Mejorar UX,Token renovado automáticamente en localstorage,Baja,3,Estudiante 6
+HU-013,Frontend,Media,Todos,Cerrar Sesión,Salir de forma segura,Privacidad y control,Tokens destruidos en DB y navegador,Baja,2,Estudiante 1
+HU-014,Backend,Alta,GlobalOwner,Límite Membresía Bronce,Limitar a 500 usuarios por país,Cumplimiento de ventas,Bloqueo de formulario al llegar a 500,Media,5,Estudiante 2
+HU-015,Backend,Alta,GlobalOwner,Límite Membresía Plata,Limitar a 2000 usuarios,Cumplimiento de ventas,Bloqueo de formulario al llegar a 2000,Media,3,Estudiante 3
+HU-016,Backend,Alta,GlobalOwner,Límite Membresía Oro,Usuarios ilimitados,Cumplimiento de ventas,Exención de comprobación de límite,Media,3,Estudiante 4
+HU-017,Backend,Media,GlobalOwner,Logs de Auditoria B2G,Rastrear quién borra o edita,Trazabilidad legal,Tabla de auditoría con IP y Timestamp,Media,5,Estudiante 5
+HU-018,Frontend,Baja,Todos,Editar Perfil,Cambiar foto y datos personales,Personalización visual,Datos de perfil actualizados en Supabase,Baja,3,Estudiante 6
+HU-019,Frontend,Media,Cooperativa,Desactivar Cuenta de Farmer,Suspender accesos indebidos,Control organizacional,Estado is_active = false y token revocado,Media,5,Estudiante 1
+HU-020,Backend,Baja,Todos,Enviar Email Bienvenida,Hacer Onboarding,Retención y UX,Plantilla HTML enviada vía Resend/SendGrid,Baja,3,Estudiante 2
+HU-021,UX,Media,Agricultor,Ver Panel Onboarding,Entender la app al entrar por primera vez,Curva de aprendizaje,Tooltips en pantalla guiando al usuario,Media,5,Estudiante 3
+HU-022,Backend,Alta,GlobalOwner,Gestión de Suscripciones,Ver estado de pagos de países,Facturación B2G,Historial de facturas y estado (Paid/Pending),Alta,8,Estudiante 4
+HU-023,Backend,Alta,GlobalOwner,Bloqueo por Falta de Pago,Suspender país moroso,Finanzas,Redirección a pantalla de pago requerido,Media,5,Estudiante 5
+HU-024,QA,Alta,SysAdmin,Auditoría de Seguridad,Certificar app para gobiernos,Confianza B2G,Reporte de PenTesting sin alertas rojas críticas,Alta,8,Estudiante 6
+HU-025,DevOps,Alta,Dev,Despliegue Entorno Staging,Tener entorno de pruebas previo a producción,Estabilidad QA,URL de staging activa y conectada a DB test,Media,5,Estudiante 1
+HU-026,Frontend,Alta,Agricultor,Crear Parcela (Polígono),Dibujar mi terreno en un mapa,Precisión geoespacial,Polígono dibujado en API Maps y coordenadas guardadas,Alta,13,Estudiante 2
+HU-027,Frontend,Media,Agricultor,Editar linderos de Parcela,Corregir márgenes mal dibujados,Precisión geoespacial,Actualización de array de coordenadas GPS,Media,5,Estudiante 3
+HU-028,Frontend,Baja,Agricultor,Eliminar Parcela,Borrar lotes inactivos o vendidos,Orden visual,Soft-delete aplicado en base de datos,Baja,2,Estudiante 4
+HU-029,Frontend,Media,Agricultor,Ver Listado de Parcelas,Gestionar mis tierras,Control agrícola,Tabla mostrando área calculada en hectáreas,Media,5,Estudiante 5
+HU-030,Backend,Media,Ministerio,Catálogo Nacional de Semillas,Estandarizar cultivos del país,Organización B2G,Base de datos de semillas con días a cosecha,Media,5,Estudiante 6
+HU-031,Frontend,Alta,Agricultor,Registrar Siembra,Iniciar ciclo de cultivo nuevo,Tracking de producción,Cultivo enlazado a parcela y semilla,Alta,8,Estudiante 1
+HU-032,Frontend,Media,Agricultor,Cambiar Estado del Cultivo,Pasar de vegetativo a floración,Seguimiento cronológico,Enum actualizado en base de datos,Media,5,Estudiante 2
+HU-033,Frontend,Alta,Agricultor,Cierre de Cosecha,Registrar los kg finales obtenidos,Medir rendimiento,Historial cerrado y kg guardados,Media,5,Estudiante 3
+HU-034,Frontend,Media,Agricultor,Historial de Cosechas,Ver ciclos pasados para comparar,Análisis interanual,Tabla filtrable por año y cultivo,Media,5,Estudiante 4
+HU-035,Backend,Alta,Cooperativa,Estimación de Rendimiento,Predecir la cosecha total de la región,Planificación de ventas,Algoritmo de cálculo de kg estimados por hectárea,Alta,8,Estudiante 5
+HU-036,Backend,Media,Ministerio,Catálogo Oficial Fertilizantes,Evitar toxicidad en suelos,Salud pública,Lista NPK oficial sin edición para agricultores,Media,5,Estudiante 6
+HU-037,Backend,Alta,Agricultor,Plan de Abono Automático,Recibir dosis técnica calculada,Ahorro de tiempo,Cronograma semanal generado automáticamente,Alta,13,Estudiante 1
+HU-038,Frontend,Media,Agricultor,Registrar Abono Manual,Anotar dosis extras aplicadas,Control de suelo,Input guardado en historial de químicos,Media,5,Estudiante 2
+HU-039,Frontend,Alta,Cooperativa,Inventario de Fertilizantes,Controlar el stock en bodegas,Gestión financiera,Kilos sumados/restados por cada aplicación,Media,8,Estudiante 3
+HU-040,Backend,Media,Cooperativa,Alerta de Stock Bajo,Notificar cuando falta abono,Logística ininterrumpida,Correo enviado automáticamente si stock < 10%,Media,5,Estudiante 4
+HU-041,Backend,Media,Agricultor,Integrar Fases Lunares,Conocer luna actual,Saber popular agrícola,API conectada mostrando fase (Ej: Cuarto Menguante),Media,5,Estudiante 5
+HU-042,UX,Alta,Agricultor,Sugerencia de Siembra Lunar,Saber día ideal para sembrar raíz,Mejorar brote biológico,Alerta en verde los días óptimos lunares,Media,8,Estudiante 6
+HU-043,Backend,Media,Ministerio,Catálogo de Plagas Oficial,Base de conocimiento de enfermedades,Salud fito-sanitaria,Lista con fotos y descripciones técnicas,Media,5,Estudiante 1
+HU-044,Frontend,Alta,Agricultor,Reportar Plaga en Cultivo,Subir foto de hoja enferma,Prevenir infección,Alerta llega al dashboard de la cooperativa,Alta,8,Estudiante 2
+HU-045,Backend,Media,Ministerio,Catálogo Oficial Pesticidas,Indicar químicos legales,Cumplimiento normativo,Lista filtrada de agrotóxicos permitidos,Media,3,Estudiante 3
+HU-046,Frontend,Baja,Agricultor,Registrar Riego,Anotar horas de bomba de agua,Control hídrico,Horas/Litros guardados en historial de la parcela,Baja,3,Estudiante 4
+HU-047,Backend,Media,Cooperativa,Análisis de Gasto Hídrico,Ver consumo total de agua,Sostenibilidad ambiental,Gráfico de litros vs producción,Media,5,Estudiante 5
+HU-048,Frontend,Alta,Consumidor,Generar Trazabilidad QR,Escanear origen del producto,Valor agregado exportación,Código QR generado asociando lote y agricultor,Alta,8,Estudiante 6
+HU-049,Frontend,Media,Agricultor,Exportar Historial a PDF,Imprimir ciclo para créditos,Acceso a financiamiento bancario,PDF descargable con resumen de la cosecha,Media,5,Estudiante 1
+HU-050,QA,Alta,Dev,Pruebas Unitarias Core,Testear fórmulas de predicción,Estabilidad,Cobertura de test en Jest superando 80%,Alta,8,Estudiante 2
+HU-051,Backend,Alta,Sistema,Conectar API OpenWeather,Traer clima según coordenadas,Automatización de datos,JSON meteorológico parseado correctamente,Media,5,Estudiante 3
+HU-052,UX,Alta,Agricultor,Widget de Temperatura Local,Ver grados de hoy,Planificar jornada de campo,Termómetro dinámico en el panel,Baja,3,Estudiante 4
+HU-053,UX,Media,Agricultor,Widget de Lluvia y Viento,Ver mm de lluvia esperados,Prevenir deslaves o lavado de químicos,Iconos actualizándose en tiempo real,Baja,3,Estudiante 5
+HU-054,Backend,Alta,Agricultor,Alerta Push Heladas,Aviso si bajará de 0 grados,Salvar cosecha con humo/invernadero,Notificación móvil si min_temp < 2C,Alta,8,Estudiante 6
+HU-055,Backend,Alta,Agricultor,Alerta Push Sequía,Aviso si van 10 días sin lluvia,Activar riego de emergencia,Notificación generada por cruce de datos,Alta,8,Estudiante 1
+HU-056,Backend,Media,Agricultor,Sugerencia No Abonar,Aviso de tormenta próxima,Ahorrar fertilizante que se lavaría,Banner amarillo de advertencia en pantalla,Media,5,Estudiante 2
+HU-057,Frontend,Alta,Dev,Service Worker (Modo Offline),Hacer PWA instalable,Accesibilidad en áreas rurales sin señal,App instalable en celular y cache local activo,Alta,13,Estudiante 3
+HU-058,Frontend,Alta,Agricultor,Guardar Parcelas Offline,Poder ver lotes sin internet,Continuidad de trabajo,Datos almacenados en IndexedDB temporal,Media,8,Estudiante 4
+HU-059,Frontend,Alta,Agricultor,Registrar Abono Offline,Trabajar en zonas muertas de señal,Usabilidad rural,Formulario encolado localmente sin errores,Alta,13,Estudiante 5
+HU-060,Frontend,Alta,Sistema,Sincronización Automática,Subir datos encolados al conectar a wifi,Integridad de base de datos,La cola local se vacía al detectar objeto navigator.onLine,Alta,13,Estudiante 6
+HU-061,Backend,Media,Sistema,Resolución Conflictos Offline,Mantener el dato más reciente si hay choque,Fiabilidad de datos,"Lógica de 'Last Write Wins' usando timestamp",Media,5,Estudiante 1
+HU-062,UX,Alta,Agricultor,Navegación Móvil Inferior,Usar la app a una sola mano en el campo,Comodidad ergonómica,Menú bottom-bar implementado en pantallas <768px,Media,5,Estudiante 2
+HU-063,UX,Media,Todos,Modo Oscuro,Reducir cansancio visual de noche,Salud laboral,Botón toggle funcional y CSS variables configuradas,Media,5,Estudiante 3
+HU-064,Frontend,Baja,GlobalOwner,Traducción EN/ES,Cambiar idioma de la plataforma,Expansión a nuevos países B2G,Sistema i18n traduciendo textos estáticos,Media,5,Estudiante 4
+HU-065,Frontend,Media,Todos,Centro de Notificaciones,Ver historial de alertas climáticas,Seguimiento,Campana con contador dinámico en topbar,Media,5,Estudiante 5
+HU-066,UX,Baja,Agricultor,Modo Alto Contraste,Poder leer la app bajo el sol directo,Accesibilidad al aire libre,Paleta de colores saturada opcional activada,Baja,2,Estudiante 6
+HU-067,Frontend,Media,Sistema,Lazy Loading de Imágenes,Cargar rápido el mapa y fotos,Ahorro de datos móviles rurales,Imágenes cargando solo al hacer scroll (IntersectionObserver),Baja,3,Estudiante 1
+HU-068,Frontend,Media,Sistema,Caché de Catálogos Oficiales,Evitar descargar catálogos en cada login,Rendimiento y velocidad,Catálogos cacheados por 24 horas,Media,5,Estudiante 2
+HU-069,UX,Media,Ministerio,Rediseño Tablas Administrativas,Facilitar lectura de censos nacionales,Análisis masivo,DataGrid con paginación y filtros complejos activos,Media,5,Estudiante 3
+HU-070,QA,Alta,Dev,Test Rendimiento Lighthouse,Asegurar carga ultrarrápida,Calidad técnica B2G,Score de Lighthouse > 90 en Performance celular,Media,5,Estudiante 4
+HU-071,Backend,Alta,Dev,Servidor Signaling WebRTC,Conectar pares para video,Soporte remoto,Servidor de websockets activo y transmitiendo ICE candidates,Alta,13,Estudiante 5
+HU-072,Frontend,Alta,Agricultor,Interfaz Videollamada Campo,Mostrar mi cámara al ingeniero,Diagnóstico visual de plagas,Video renderizado sin latencia alta,Alta,13,Estudiante 6
+HU-073,UX,Media,Agricultor,Permisos Cámara/Micrófono,Dar acceso al hardware del celular,Comunicación multimedia,Diálogo nativo del navegador validado correctamente,Baja,2,Estudiante 1
+HU-074,Frontend,Alta,Todos,Chat de Texto Tiempo Real,Preguntar dudas rápidas a la cooperativa,Soporte asíncrono,Mensaje enviado y recibido en menos de 1 segundo,Alta,8,Estudiante 2
+HU-075,Frontend,Media,Agricultor,Enviar Imágenes por Chat,Mostrar foto detallada al técnico,Soporte técnico,Imagen comprimida y enviada vía bucket de storage,Media,5,Estudiante 3
+HU-076,Frontend,Baja,Todos,Indicador 'Escribiendo...',Saber si el técnico está respondiendo,Mejora UX comunicativa,Animación de 3 puntos mostrada vía socket,Baja,2,Estudiante 4
+HU-077,Backend,Alta,Ministerio,Sistema Suspensión Cooperativas,Bloquear nodos por faltas legales,Control estatal B2G,Botón de suspender inactiva en cascada a sus agricultores,Media,5,Estudiante 5
+HU-078,UX,Alta,Ministerio,Mapa Nacional Interactivo,Ver focos de producción de maíz vs frijol,Análisis macroeconómico,Mapa del país con clusters (pines agrupados),Alta,13,Estudiante 6
+HU-079,Frontend,Alta,Ministerio,Gráfico Rendimiento Nacional,Ver toneladas de cosecha proyectadas mes a mes,Proyección de seguridad alimentaria,Gráficos de barras Chart.js renderizados,Media,5,Estudiante 1
+HU-080,Frontend,Media,Ministerio,Reporte Actividad Cooperativas,Listar cooperativas con más adopción,Gestión de métricas,Tabla con conteo de agricultores activos,Media,5,Estudiante 2
+HU-081,Frontend,Alta,Cooperativa,Dashboard de Cooperativa,Ver métricas consolidadas de las fincas afiliadas,Microeconomía regional,KPI cards mostrando sumatoria de hectáreas registradas,Media,8,Estudiante 3
+HU-082,UX,Alta,Agricultor,Dashboard de Agricultor,Tener resumen inmediato de mi finca,Control visual rápido,Dashboard combina widgets de clima y tareas del día,Media,8,Estudiante 4
+HU-083,Backend,Alta,GlobalOwner,Telemetría del Servidor,Revisar carga de CPU y Base de datos,Mantenimiento preventivo,Gráficos de consumo interno (Ej: Supabase Dashboard),Alta,8,Estudiante 5
+HU-084,Backend,Media,GlobalOwner,Monitoreo Uso de APIs Externas,Ver peticiones hechas a clima o SMS,Control de costos de servidor,Contador de requests actualizado cada hora,Media,5,Estudiante 6
+HU-085,Frontend,Media,Ministerio,Exportar Censo Nacional (Excel),Descargar data para informes de gobierno,Burocracia y transparencia,Botón descarga un archivo .xlsx formateado,Media,5,Estudiante 1
+HU-086,Frontend,Media,Cooperativa,Exportar Finanzas (Excel),Descargar uso de fertilizantes,Contabilidad y compras,Archivo xlsx con desglose de químicos aplicados,Media,5,Estudiante 2
+HU-087,Frontend,Baja,Agricultor,Formulario Sugerir Mejoras,Enviar feedback sobre la aplicación,Evolución centrada en el usuario,Mensaje de feedback almacenado en tabla sugerencias,Baja,2,Estudiante 3
+HU-088,DevOps,Alta,Dev,Backup Automático de DB,Resguardar data nacional contra borrados,Seguridad de estado B2G,Cron job ejecutando pg_dump diariamente,Media,5,Estudiante 4
+HU-089,DevOps,Alta,Dev,Restauración de Backup,Recuperar el sistema ante caídas,Seguridad de desastres,Script documentado capaz de restaurar SQL,Alta,8,Estudiante 5
+HU-090,QA,Alta,Dev,Pruebas de Carga Masiva (Stress Test),Asegurar que aguanta 100 mil usuarios rurales,Estabilidad de escala B2G,Servidor responde a test de Artillery sin colapsar (Error 500),Alta,13,Estudiante 6

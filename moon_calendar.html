@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario Lunar</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/modern_agro.css">
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.108/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.108/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+</head>
+<body class="page-body">
+    <div id="navbar-container"></div>
+
+    <div class="container mt-5">
+        <div class="agro-card mx-auto animate-slide-up" style="max-width:600px;">
+            <h2 class="mb-4 text-center dashboard-title">Asesor Lunar Premium</h2>
+            <div class="text-center text-muted mb-4 small">Consulta la influencia astral en tus cultivos con precisión.</div>
+            
+            <form id="moon-form" class="mb-4">
+                <div class="form-group mb-4">
+                    <label class="fw-bold mb-2">1. Selecciona Ubicación en el Mapa</label>
+                    <div class="map-search-wrapper mb-3 d-flex gap-2">
+                        <input id="moon-search-input" type="text" class="form-control map-search-input m-0" placeholder="Buscar ubicación..." />
+                        <button id="moon-search-btn" type="button" class="btn btn-primary map-search-btn m-0">Buscar</button>
+                        <button type="button" class="btn btn-info text-white m-0" onclick="geolocateMe()" title="Mi Ubicación"><i class="bi bi-crosshair"></i></button>
+                    </div>
+                    <div id="moon-search-results" class="map-search-results mb-3"></div>
+                    <div id="moon-map" style="position: relative; height: 300px; border-radius: 20px; border: 1px solid var(--border-color); margin-bottom: 20px;">
+                        <div class="map-zoom-controls animate-slide-up">
+                            <button class="map-zoom-btn" type="button" onclick="if(window.viewer) window.viewer.camera.zoomIn(window.viewer.camera.positionCartographic.height * 0.5);" title="Acercar">+</button>
+                            <button class="map-zoom-btn" type="button" onclick="if(window.viewer) window.viewer.camera.zoomOut(window.viewer.camera.positionCartographic.height * 0.5);" title="Alejar">−</button>
+                        </div>
+                    </div>
+                    <div class="small text-muted mb-3">📍 Haz clic en el mapa para situar el pin. Coordenadas: <span id="coords-display" class="fw-bold">No seleccionadas</span></div>
+                </div>
+                <div class="form-group mb-4">
+                    <label class="fw-bold mb-2">2. Fecha de Consulta</label>
+                    <input type="date" id="date" class="form-control" required>
+                </div>
+                <button type="submit" id="btn-analyze" class="btn-primary w-100 py-3" disabled>Analizar Ciclo Astral</button>
+            </form>
+            
+            <div id="result-container" class="mt-5" style="display:none;">
+                <div class="moon-display-card text-center p-4 rounded-4 mb-4" style="background: rgba(15, 23, 42, 0.03); border: 1px solid rgba(15, 23, 42, 0.05);">
+                    <div id="moon-icon" style="font-size: 80px; filter: drop-shadow(0 0 20px rgba(47, 133, 90, 0.25));" class="animate-float mb-2"></div>
+                    <div class="text-muted small text-uppercase fw-bold letter-spacing-1 mb-1">Fase Actual</div>
+                    <div class="fs-3 fw-800" id="moon-phase" style="color: var(--text-main);"></div>
+                </div>
+
+                <div class="row g-3 animate-slide-up animate-delay-2" id="astro-details">
+                    <div class="col-6">
+                        <div class="detail-card-small p-3 text-center h-100">
+                            <div class="fs-4 mb-1">🌅</div>
+                            <div class="text-muted mini-label">Salida Sol</div>
+                            <div id="astro-sunrise" class="fw-bold"></div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="detail-card-small p-3 text-center h-100">
+                            <div class="fs-4 mb-1">🌇</div>
+                            <div class="text-muted mini-label">Puesta Sol</div>
+                            <div id="astro-sunset" class="fw-bold"></div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="detail-card-small p-3 text-center h-100">
+                            <div class="fs-4 mb-1">🌜</div>
+                            <div class="text-muted mini-label">Salida Luna</div>
+                            <div id="astro-moonrise" class="fw-bold"></div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="detail-card-small p-3 text-center h-100">
+                            <div class="fs-4 mb-1">🌛</div>
+                            <div class="text-muted mini-label">Puesta Luna</div>
+                            <div id="astro-moonset" class="fw-bold"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4 animate-slide-up animate-delay-3">
+                    <div class="d-inline-block px-4 py-2 rounded-pill bg-primary text-white shadow-sm fw-bold">
+                        🌓 Iluminación: <span id="astro-illumination"></span>%
+                    </div>
+                </div>
+            </div>
+            
+            <div id="loading" class="mt-4 text-center" style="display:none;">
+                <div class="spinner-border text-primary" role="status"></div>
+                <div class="mt-2 text-muted small">Sincronizando con astros...</div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .detail-card-small {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        .detail-card-small:hover {
+            transform: translateY(-5px);
+            background: #fff;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+        .mini-label { font-size: 10px; text-transform: uppercase; font-weight: 700; opacity: 0.7; }
+        .letter-spacing-1 { letter-spacing: 1px; }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/database.js"></script>
+    <script src="js/layout.js"></script>
+    
+    <script>
+        async function initMoon() {
+            if (window.initLayout) await window.initLayout('moon');
+            await AuthObj.requireAuth();
+            
+            // Set default date to today
+            document.getElementById('date').value = new Date().toISOString().split('T')[0];
+        }
+
+        document.addEventListener('DOMContentLoaded', initMoon);
+
+        // Initialize Map
+        let viewer;
+        let selectedCoords = null;
+        let marker = null;
+
+        async function initCesium() {
+            try {
+                Cesium.Ion.defaultAccessToken = null;
+
+                const satelliteProvider = await Cesium.ArcGisMapServerImageryProvider.fromUrl(
+                    'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer',
+                    { maximumLevel: 19 }
+                );
+                if (satelliteProvider?.errorEvent) satelliteProvider.errorEvent.addEventListener(e => e.retry = false);
+
+                viewer = new Cesium.Viewer('moon-map', {
+                    animation: false,
+                    baseLayerPicker: false,
+                    fullscreenButton: false,
+                    vrButton: false,
+                    geocoder: false,
+                    homeButton: false,
+                    infoBox: false,
+                    sceneModePicker: false,
+                    selectionIndicator: false,
+                    timeline: false,
+                    navigationHelpButton: false,
+                    navigationInstructionsInitiallyVisible: false,
+                    scene3DOnly: true,
+                    targetFrameRate: 60,
+                    useDefaultRenderLoop: true,
+                    baseLayer: Cesium.ImageryLayer.fromProviderAsync(Promise.resolve(satelliteProvider)),
+                });
+                window.viewer = viewer;
+                document.getElementById('moon-map').style.pointerEvents = 'auto';
+
+                viewer.scene.mode = Cesium.SceneMode.SCENE3D;
+                viewer.scene.globe.enableLighting = true;
+                viewer.scene.globe.depthTestAgainstTerrain = true;
+
+                const labelsProvider = await Cesium.ArcGisMapServerImageryProvider.fromUrl(
+                    'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer',
+                    { maximumLevel: 19 }
+                );
+                if (labelsProvider?.errorEvent) labelsProvider.errorEvent.addEventListener(e => e.retry = false);
+                viewer.imageryLayers.addImageryProvider(labelsProvider);
+
+                viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(-89.2182, 13.6929, 5000000.0) });
+
+                const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+                handler.setInputAction(function(click) {
+                    const cartesian = viewer.camera.pickEllipsoid(click.position, viewer.scene.globe.ellipsoid);
+                    if (cartesian) {
+                        const cartographic = Cesium.Cartographic.fromCartesian(cartesian);
+                        const lon = Cesium.Math.toDegrees(cartographic.longitude);
+                        const lat = Cesium.Math.toDegrees(cartographic.latitude);
+                        
+                        selectedCoords = { lat, lng: lon };
+                        document.getElementById('coords-display').innerText = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                        document.getElementById('btn-analyze').disabled = false;
+
+                        if (marker) {
+                            marker.position = cartesian;
+                        } else {
+                            marker = viewer.entities.add({
+                                position: cartesian,
+                                point: { pixelSize: 14, color: Cesium.Color.YELLOW, outlineColor: Cesium.Color.WHITE, outlineWidth: 2 }
+                            });
+                        }
+                    }
+                }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+            } catch (err) {
+                console.warn("Map Init Error:", err);
+                document.getElementById('moon-map').innerHTML = '<div class="alert alert-danger h-100 d-flex align-items-center justify-content-center">Error al cargar el globo 3D. Verifica tu conexión a internet.</div>';
+            }
+        }
+        
+        initCesium();
+
+        window.geolocateMe = function() {
+            if(navigator.geolocation && window.viewer) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(lng, lat, 3000.0) });
+                    
+                    selectedCoords = { lat, lng };
+                    document.getElementById('coords-display').innerText = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                    document.getElementById('btn-analyze').disabled = false;
+                    
+                    const cartesian = Cesium.Cartesian3.fromDegrees(lng, lat);
+                    if (marker) {
+                        marker.position = cartesian;
+                    } else {
+                        marker = viewer.entities.add({
+                            position: cartesian,
+                            point: { pixelSize: 14, color: Cesium.Color.YELLOW, outlineColor: Cesium.Color.WHITE, outlineWidth: 2 }
+                        });
+                    }
+                    if(window.Swal) Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'Ubicación detectada', showConfirmButton: false, timer: 2000});
+                });
+            }
+        };
+
+        const moonSearchInput = document.getElementById('moon-search-input');
+        const moonSearchBtn = document.getElementById('moon-search-btn');
+        const moonSearchResults = document.getElementById('moon-search-results');
+
+        moonSearchBtn.addEventListener('click', async () => {
+            const query = moonSearchInput.value.trim();
+            if(query.length < 3) return;
+            
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+                if (!response.ok) throw new Error('Network error');
+                const data = await response.json();
+                
+                moonSearchResults.innerHTML = '';
+                if(data.length === 0) {
+                    moonSearchResults.innerHTML = '<div class="list-group-item text-muted">No se encontraron resultados</div>';
+                    moonSearchResults.style.display = 'block';
+                    return;
+                }
+
+                data.slice(0, 5).forEach(place => {
+                    const div = document.createElement('div');
+                    div.className = 'list-group-item list-group-item-action map-search-item';
+                    div.textContent = place.display_name;
+                    div.onclick = () => {
+                        const lat = parseFloat(place.lat);
+                        const lon = parseFloat(place.lon);
+                        
+                        viewer.camera.flyTo({ destination: Cesium.Cartesian3.fromDegrees(lon, lat, 10000.0) });
+                        
+                        selectedCoords = { lat, lng: lon };
+                        document.getElementById('coords-display').innerText = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                        document.getElementById('btn-analyze').disabled = false;
+
+                        const cartesian = Cesium.Cartesian3.fromDegrees(lon, lat);
+                        if (marker) {
+                            marker.position = cartesian;
+                        } else {
+                            marker = viewer.entities.add({
+                                position: cartesian,
+                                point: { pixelSize: 14, color: Cesium.Color.YELLOW, outlineColor: Cesium.Color.WHITE, outlineWidth: 2 }
+                            });
+                        }
+                        
+                        moonSearchResults.style.display = 'none';
+                        moonSearchInput.value = place.display_name.split(',')[0];
+                    };
+                    moonSearchResults.appendChild(div);
+                });
+                moonSearchResults.style.display = 'block';
+            } catch (e) {
+                 moonSearchResults.innerHTML = '<div class="list-group-item text-danger">Error buscando ubicación</div>';
+                 moonSearchResults.style.display = 'block';
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if(!e.target.closest('.map-search-wrapper') && !e.target.closest('#moon-search-results')) {
+                moonSearchResults.style.display = 'none';
+            }
+        });
+
+        // Set default date to today
+        document.getElementById('date').valueAsDate = new Date();
+
+        const MOON_PHASES = {
+            "New Moon": ["Luna Nueva", "🌑"],
+            "Waxing Crescent": ["Luna Creciente", "🌒"],
+            "First Quarter": ["Cuarto Creciente", "🌓"],
+            "Waxing Gibbous": ["Luna Gibada Creciente", "🌔"],
+            "Full Moon": ["Luna Llena", "🌕"],
+            "Waning Gibbous": ["Luna Gibada Menguante", "🌖"],
+            "Last Quarter": ["Cuarto Menguante", "🌗"],
+            "Waning Crescent": ["Luna Menguante", "🌘"]
+        };
+
+        const form = document.getElementById('moon-form');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if(!selectedCoords) return;
+
+            const date = document.getElementById('date').value;
+            const resContainer = document.getElementById('result-container');
+            const loading = document.getElementById('loading');
+            
+            resContainer.style.display = 'none';
+            loading.style.display = 'block';
+
+            try {
+                // Query using lat,lon
+                const url = `https://api.weatherapi.com/v1/astronomy.json?key=${CONFIG.WEATHER_API_KEY}&q=${selectedCoords.lat},${selectedCoords.lng}&dt=${date}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data && data.astronomy && data.astronomy.astro) {
+                    const astro = data.astronomy.astro;
+                    const englishPhase = astro.moon_phase;
+                    const phaseData = MOON_PHASES[englishPhase] || [englishPhase, "🌙"];
+                    
+                    document.getElementById('moon-phase').innerText = phaseData[0];
+                    document.getElementById('moon-icon').innerText = phaseData[1];
+                    
+                    document.getElementById('astro-sunrise').innerText = astro.sunrise;
+                    document.getElementById('astro-sunset').innerText = astro.sunset;
+                    document.getElementById('astro-moonrise').innerText = astro.moonrise;
+                    document.getElementById('astro-moonset').innerText = astro.moonset;
+                    document.getElementById('astro-illumination').innerText = astro.moon_illumination;
+                    
+                    resContainer.style.display = 'block';
+                    resContainer.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    window.showErrorModal('Error Astrológico', 'No se pudieron obtener datos lunares para esta región. Intenta con otra zona.');
+                }
+            } catch (err) {
+                console.error(err);
+                window.showErrorModal('Error de Conexión', 'No se pudo conectar con el servicio astral mundial.');
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
