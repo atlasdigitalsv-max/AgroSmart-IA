@@ -67,9 +67,7 @@ window.AgroMapAdvanced = {
                     await this.loadRainViewer(id);
                     break;
                 case 'clouds':
-                    this.loadNASA('GHRSST_L4_MUR_Sea_Surface_Temperature', id); // NASA doesn't have a perfect live cloud layer via WMS easily, but we can mock or use precipitation. Let's use GOES brightness temp. Or AIRS.
-                    // Wait, let's use MODIS Terra Cloud Fraction
-                    this.loadNASA('MODIS_Terra_Cloud_Fraction_Day', id);
+                    this.loadOWM('clouds_new', id);
                     break;
                 case 'earthquakes':
                     await this.loadUSGS();
@@ -137,6 +135,11 @@ window.AgroMapAdvanced = {
         const res = await fetch('https://api.rainviewer.com/public/weather-maps.json');
         if (!res.ok) throw new Error("RainViewer API error");
         const data = await res.json();
+        
+        // Verificar si el usuario desactivó el botón mientras cargaba
+        const btn = document.querySelector(`.windy-layer-btn[data-layer="${id}"]`);
+        if (btn && !btn.classList.contains('active')) return;
+
         const latestPath = data.radar.past[data.radar.past.length - 1].path;
         
         // Color scheme 2 is good for radar, 1 is good for precip
@@ -144,7 +147,8 @@ window.AgroMapAdvanced = {
 
         const provider = new Cesium.UrlTemplateImageryProvider({
             url: `https://tilecache.rainviewer.com${latestPath}/256/{z}/{x}/{y}/${color}/1_1.png`,
-            credit: 'RainViewer'
+            credit: 'RainViewer',
+            maximumLevel: 8
         });
         
         const layer = this.viewer.imageryLayers.addImageryProvider(provider);
@@ -157,6 +161,10 @@ window.AgroMapAdvanced = {
         const res = await fetch('https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson');
         if (!res.ok) throw new Error("USGS API error");
         const data = await res.json();
+        
+        // Verificar si el usuario desactivó el botón mientras cargaba
+        const btn = document.querySelector(`.windy-layer-btn[data-layer="earthquakes"]`);
+        if (btn && !btn.classList.contains('active')) return;
         
         const ds = await Cesium.GeoJsonDataSource.load(data, {
             markerSize: 24,
@@ -197,7 +205,8 @@ window.AgroMapAdvanced = {
                 format: 'image/png'
             },
             tilingScheme: new Cesium.GeographicTilingScheme(), // CRUCIAL: Previene errores 400 de NASA GIBS
-            credit: 'NASA GIBS'
+            credit: 'NASA GIBS',
+            maximumLevel: 8
         });
         
         const layer = this.viewer.imageryLayers.addImageryProvider(provider);
@@ -207,11 +216,27 @@ window.AgroMapAdvanced = {
         this.layers[id] = layer;
     },
 
+    loadOWM: function(layerName, id) {
+        if (!CONFIG.OPENWEATHERMAP_API_KEY) {
+            throw new Error("No OWM API key");
+        }
+        const provider = new Cesium.UrlTemplateImageryProvider({
+            url: `https://tile.openweathermap.org/map/${layerName}/{z}/{x}/{y}.png?appid=${CONFIG.OPENWEATHERMAP_API_KEY}`,
+            credit: 'OpenWeatherMap',
+            maximumLevel: 10
+        });
+        const layer = this.viewer.imageryLayers.addImageryProvider(provider);
+        const slider = document.getElementById('windy-layer-opacity');
+        if (slider) layer.alpha = parseFloat(slider.value);
+        this.layers[id] = layer;
+    },
+
     loadTopo: function() {
         const provider = new Cesium.UrlTemplateImageryProvider({
             url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
             credit: 'OpenTopoMap',
-            subdomains: ['a', 'b', 'c']
+            subdomains: ['a', 'b', 'c'],
+            maximumLevel: 17
         });
         const layer = this.viewer.imageryLayers.addImageryProvider(provider);
         const slider = document.getElementById('windy-layer-opacity');
@@ -278,13 +303,13 @@ window.AgroMapAdvanced = {
                         window.open(`https://www.google.com/maps?layer=c&cbll=${lat},${lon}`, '_blank');
                     } else if (result.isDenied) {
                         this.viewer.camera.flyTo({
-                            destination: Cesium.Cartesian3.fromDegrees(lon, lat, 2.0),
+                            destination: Cesium.Cartesian3.fromDegrees(lon, lat, 150.0),
                             orientation: {
                                 heading: Cesium.Math.toRadians(0.0),
-                                pitch: Cesium.Math.toRadians(0.0),
+                                pitch: Cesium.Math.toRadians(-20.0),
                                 roll: 0.0
                             },
-                            duration: 2.0
+                            duration: 2.5
                         });
                     }
                 });

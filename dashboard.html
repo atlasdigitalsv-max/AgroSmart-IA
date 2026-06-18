@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - AgroSmart</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/modern_agro.css">
-    <link rel="stylesheet" href="css/windy.css">
+    <link rel="stylesheet" href="css/modern_agro.css?v=2">
+    <link rel="stylesheet" href="css/windy.css?v=4">
     <script src="https://cesium.com/downloads/cesiumjs/releases/1.108/Build/Cesium/Cesium.js"></script>
     <link id="cesium-css" rel="stylesheet" href="">
     <script>
@@ -259,6 +259,17 @@
         let map;
         let searchMarker;
 
+        // Silenciar errores de promesas no capturadas (Típicos de red en CesiumJS cuando falla la conexión)
+        window.addEventListener('unhandledrejection', function(event) {
+            if (event.reason) {
+                const msg = event.reason.message || '';
+                if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || 
+                    (typeof event.reason === 'object' && event.reason.statusCode === undefined && event.reason.response === undefined)) {
+                    event.preventDefault(); // Previene el "Uncaught (in promise)" en la consola
+                }
+            }
+        });
+
         async function initDashboard() {
             if (window.initLayout) await window.initLayout('dashboard');
 
@@ -428,19 +439,6 @@
                     origConsoleError.apply(console, args);
                 };
 
-                // Usamos ArcGIS Terrain que es gratuito y no requiere Token (Evita error 401 en consola)
-                let terrainProvider;
-                try {
-                    terrainProvider = await Cesium.ArcGISTiledElevationTerrainProvider.fromUrl(
-                        'https://elevation3d.arcgis.com/arcgis/rest/services/WorldElevation3D/Terrain3D/ImageServer'
-                    );
-                    if (terrainProvider.errorEvent) {
-                        terrainProvider.errorEvent.addEventListener(e => { e.retry = false; });
-                    }
-                } catch (e) {
-                    // Silenciado para evitar errores en consola
-                }
-
                 viewer = new Cesium.Viewer('weather-map', {
                     animation: false,
                     baseLayerPicker: false,
@@ -457,11 +455,6 @@
                     scene3DOnly: true,
                     targetFrameRate: 60,
                     useDefaultRenderLoop: true,
-                    terrainShadows: Cesium.ShadowMode.DISABLED, // Apagado para mayor rendimiento
-                    msaaSamples: 2, // Bajado de 4 a 2 para duplicar FPS sin perder mucha calidad
-                    requestRenderMode: true, // Renderiza solo cuando cambia la vista, ahorra GPU
-                    maximumRenderTimeChange: Infinity,
-                    terrainProvider: terrainProvider, // Relieve 3D libre de errores
                     baseLayer: satelliteProvider ? (satelliteLayer = Cesium.ImageryLayer.fromProviderAsync(Promise.resolve(satelliteProvider))) : 
                                (navigator.onLine ? undefined : new Cesium.ImageryLayer(new Cesium.GridImageryProvider()))
                 });
@@ -491,38 +484,10 @@
                 // Set explicit pointer events just in case CSS missed it
                 document.getElementById('weather-map').style.pointerEvents = 'auto';
 
-                // Optimización EXTREMA de resolución para pantallas de alta densidad (Gamer/4K)
-                // Escala a 0.5 cuadruplica los FPS y elimina el lag al abrir el navbar
-                viewer.resolutionScale = window.devicePixelRatio > 1 ? 0.5 : 0.8; 
-                
-                // Reducir la carga de polígonos durante movimientos rápidos para no trabar el UI
-                viewer.scene.globe.maximumScreenSpaceError = window.devicePixelRatio > 1 ? 3.0 : 2.5;
-                viewer.scene.highDynamicRange = true; // HDR activado para colores intensos
-                
-                // Estética Google Earth (Atmósfera y Sol realistas)
+                // Optimización de configuración base de la escena (modo ultrarrápido igual a Luna)
+                viewer.scene.mode = Cesium.SceneMode.SCENE3D;
                 viewer.scene.globe.enableLighting = true;
-                viewer.scene.globe.dynamicAtmosphereLighting = true;
-                viewer.scene.globe.dynamicAtmosphereLightingFromSun = true;
-                if (viewer.scene.skyAtmosphere) {
-                    viewer.scene.skyAtmosphere.brightnessShift = 0.2; // Cielo más azul
-                }
-
-                viewer.scene.globe.depthTestAgainstTerrain = true;
-
-                // Niebla para optimizar horizonte
-                viewer.scene.fog.enabled = true;
-                viewer.scene.fog.density = 0.00015;
-                viewer.scene.fog.screenSpaceErrorFactor = 2.0;
-
-                // Post-procesado (Anti-aliasing rápido)
-                viewer.scene.postProcessStages.fxaa.enabled = true;
-                
-                // Renderizado bajo demanda para no quemar GPU cuando estás quieto
-                viewer.scene.requestRenderMode = true;
-
-                // Prevenir que el mapa sature la red cargando cuadros (tiles) invisibles, haciéndolo ultra-rápido
-                viewer.scene.globe.preloadAncestors = false;
-                viewer.scene.globe.preloadSiblings = false;
+                viewer.scene.globe.depthTestAgainstTerrain = false;
 
                 // Explicitly enable all zoom controls
                 viewer.scene.screenSpaceCameraController.enableZoom = true;

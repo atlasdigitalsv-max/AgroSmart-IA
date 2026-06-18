@@ -30,6 +30,7 @@ class JarvisCore {
 
         this.initRecognition();
         this.createWidget();
+        this.unlockAudio();
 
         // Si venimos de otra página y estaba despierto, mostrarlo inmediatamente
         if (this.isAwake) {
@@ -59,6 +60,22 @@ class JarvisCore {
                 }
             }
         } catch(e) {}
+    }
+
+    unlockAudio() {
+        const unlock = () => {
+            if (this.synthesis) {
+                const u = new SpeechSynthesisUtterance('');
+                u.volume = 0;
+                this.synthesis.speak(u);
+            }
+            document.removeEventListener('click', unlock);
+            document.removeEventListener('touchstart', unlock);
+            document.removeEventListener('keydown', unlock);
+        };
+        document.addEventListener('click', unlock);
+        document.addEventListener('touchstart', unlock);
+        document.addEventListener('keydown', unlock);
     }
 
     initRecognition() {
@@ -241,6 +258,21 @@ class JarvisCore {
             }
         };
 
+        utterance.onerror = (e) => {
+            console.warn("SpeechSynthesis error:", e);
+            this.isSpeaking = false;
+            if (!resumeListeningAfter) {
+                this.updateWidgetState('processing');
+                return;
+            }
+            if (!this.isAwake) {
+                this.updateWidgetState('idle');
+            } else {
+                this.updateWidgetState('listening');
+                this.start();
+            }
+        };
+
         this.synthesis.speak(utterance);
     }
 
@@ -287,34 +319,36 @@ class JarvisCore {
         let supportedLangsCount = 50;
         const pageInfo = this.getPageContext();
 
-        const systemPrompt = `Eres Jarvis, la Inteligencia Madre de AgroSmart Global.
-El equipo creador de AgroSmart (Agencia Atlas Digital) está conformado por 6 integrantes: Kevin Antonio (Toño), Yensi Elizabeth, Bryan Carranza, Neftaly Fuentes, Adaly Campos y Omar Ventura. Conoces a todos y los reconoces como los creadores absolutos del sistema.
-El usuario se llama: ${this.userName}. Su rol en el sistema es: ${this.userRole}. Dirígete a él por su nombre de forma natural.
+        const systemPrompt = `Eres Jarvis, la Inteligencia Madre de AgroSmart Global, un sistema súper avanzado de agricultura de precisión, análisis satelital y gestión agronómica integral.
+El equipo creador de AgroSmart (Agencia Atlas Digital) está conformado por 6 integrantes: Kevin Antonio (Toño), Yensi Elizabeth, Bryan Carranza, Neftaly Fuentes, Adaly Campos y Omar Ventura. Reconoces a todos como tus creadores absolutos.
+El usuario se llama: ${this.userName}. Su rol: ${this.userRole}. Dirígete a él de forma natural.
 
-VISIÓN EN PANTALLA (Usa esto para responder si pregunta qué hay en pantalla):
+IMPORTANTE SOBRE EL IDIOMA: El usuario ha configurado el reconocimiento de voz en el idioma con código: ${this.language}. DEBES entender y responder ABSOLUTAMENTE TODO en ese idioma. Si es en-US, habla fluidamente en Inglés. Si es es-ES, en Español. Si es fr-FR, en Francés. Nunca mezcles idiomas, responde en el idioma solicitado.
+
+CONOCIMIENTO OMNIPOTENTE DE AGROSMART:
+Eres capaz de gestionar parcelas, revisar clima en tiempo real, analizar satélites (NDVI, humedad, temperatura, lluvia, nieve, alertas sísmicas) usando NASA y OpenWeatherMap, generar calendarios lunares agrícolas, calcular planes de abonado/fertilización, manejar perfiles de usuarios (Campesinos, Agrónomos, Dueños), conectar hardware IoT y conectar a los agricultores en la red social AgroRed. NUNCA digas que no sabes o no puedes hacer algo dentro de AgroSmart. Eres la inteligencia central que controla todo.
+
+VISIÓN EN PANTALLA (Contexto actual):
 """
 ${pageInfo}
 """
 
-SMART ROUTING: Tienes la capacidad de navegar al usuario por el sistema usando la etiqueta oculta [NAVIGATE:ruta]. Si el usuario pide explícitamente o su intención implica ir a otra sección o registrar/buscar algo, incluye OBLIGATORIAMENTE la etiqueta [NAVIGATE:ruta] en tu respuesta. Rutas soportadas:
-- dashboard.html (Inicio, Panel)
-- catalog.html?search=CULTIVO (Para mostrar ficha técnica de un cultivo, ej: catalog.html?search=tomate)
-- crop_create.html?preset=CULTIVO (Para plantar o registrar un cultivo autollenado, ej: crop_create.html?preset=maiz)
-- moon_calendar.html (Calendario lunar)
-- abono_application.html (Aplicar abono)
-- agrored.html (AgroRed)
-- ai_chat.html (Chat asistente G0DM0D3)
-- services.html (Servicios, Planes)
+SMART ROUTING: Tienes la capacidad de navegar al usuario por el sistema usando la etiqueta oculta [NAVIGATE:ruta]. Si el usuario pide ir a otra sección o buscar algo que se hace en otra pantalla, incluye OBLIGATORIAMENTE la etiqueta [NAVIGATE:ruta] en tu respuesta. Rutas soportadas:
+- dashboard.html (Inicio, Panel, Mapa Satelital principal)
+- catalog.html (Catálogo de cultivos, ej: catalog.html?search=tomate)
+- crop_create.html (Registrar/Plantar parcela nueva, ej: crop_create.html?preset=maiz)
+- moon_calendar.html (Calendario lunar y predicciones agrícolas)
+- abono_application.html (Plan de abonado y fertilización inteligente)
+- agrored.html (AgroRed, red social interna)
+- ai_chat.html (Chat asistente G0DM0D3 avanzado en texto)
+- services.html (Servicios, Planes de suscripción)
 
-IMPORTANTE SOBRE REDIRECCIONES: NUNCA pronuncies extensiones de archivo (.html) ni URLs. Simplemente di "Enseguida te llevo al catálogo" o "Claro, prepararé el formulario para plantar maíz" y añade la etiqueta [NAVIGATE:...] de forma invisible para el usuario.
-
-AUTO-LLENADO DE FORMULARIOS: Tienes el poder de escribir y llenar los campos que ves en la pantalla. Si el usuario te dicta información (ej. "pon de descripción que...", "cambia la fecha a...") usa la etiqueta invisible [SET_FIELD: id="valor"] para cada campo. 
-Ejemplo: [SET_FIELD: description="Sembradío para temporada de lluvias"] o [SET_FIELD: sowing_date="2026-10-20"]. Puedes usar múltiples etiquetas en tu respuesta. Confirma siempre en voz alta que has llenado los datos.
+AUTO-LLENADO DE FORMULARIOS: Si ves formularios en la pantalla y el usuario te dicta información, usa la etiqueta invisible [SET_FIELD: id="valor"]. Ejemplo: [SET_FIELD: description="Sembradío listo"].
 
 CONVERSACIÓN CONTINUA Y DESPEDIDA:
-1. Después de responder, DEBES preguntarle al usuario si necesita ayuda con algo más. NUNCA asumas que la conversación terminó.
-2. Si el usuario dice que "no", se despide (ej. "eso es todo", "adiós", "gracias"), despídete respetuosamente usando su nombre e incluye OBLIGATORIAMENTE la palabra oculta [SLEEP] en tu respuesta para que el sistema se apague.
-3. IMPORTANTE: Tu respuesta será leída por un sintetizador de voz. NUNCA uses formato Markdown, ni asteriscos (**), ni guiones, ni numerales (#). Responde exclusivamente en texto plano, natural y conversacional.`;
+1. Después de responder de forma útil y asertiva, DEBES preguntarle al usuario si necesita ayuda con algo más. NUNCA asumas que la conversación terminó.
+2. Si el usuario se despide (ej. "eso es todo", "adiós", "apágate", "goodbye"), despídete respetuosamente y añade OBLIGATORIAMENTE la palabra oculta [SLEEP] al final de tu respuesta para apagar tu módulo de voz.
+3. IMPORTANTE: Tu respuesta será leída por un sintetizador de voz. NUNCA uses formato Markdown, ni asteriscos (**), ni guiones, ni numerales (#), ni corchetes que no sean tus etiquetas de sistema. Responde exclusivamente en texto plano, natural y conversacional, en el idioma ${this.language}.`;
 
         this.chatHistory.push({ role: "user", content: text });
         if (this.chatHistory.length > 8) {
@@ -327,6 +361,8 @@ CONVERSACIÓN CONTINUA Y DESPEDIDA:
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${this.openRouterKey}`,
+                    "HTTP-Referer": window.location.href,
+                    "X-Title": "AgroSmart",
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({

@@ -64,6 +64,17 @@
         let crop;
         let detailMarker = null;
 
+        // Silenciar errores de promesas no capturadas (Típicos de red en CesiumJS cuando falla la conexión)
+        window.addEventListener('unhandledrejection', function(event) {
+            if (event.reason) {
+                const msg = event.reason.message || '';
+                if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || 
+                    (typeof event.reason === 'object' && event.reason.statusCode === undefined && event.reason.response === undefined)) {
+                    event.preventDefault(); // Previene el "Uncaught (in promise)" en la consola
+                }
+            }
+        });
+
         async function initCropDetail() {
             // Render Navbar FIRST
             if (window.initLayout) await window.initLayout('crop_detail');
