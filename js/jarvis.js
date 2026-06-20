@@ -102,6 +102,7 @@ class JarvisCore {
 
             // 1. Lógica de Interrupción
             if (this.isSpeaking && currentText.length > 5) {
+                this.latestSpeakId = null;
                 this.synthesis.cancel(); // Callar a Jarvis
                 this.isSpeaking = false;
                 this.setAwakeState(true);
@@ -229,9 +230,7 @@ class JarvisCore {
         if (!this.synthesis) return;
         
         this.stop(); 
-        this.isSpeaking = true;
-        this.updateWidgetState('speaking');
-
+        
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = this.language;
         
@@ -240,7 +239,21 @@ class JarvisCore {
             utterance.voice = voices[this.voiceIndex];
         }
 
+        const speakId = Date.now() + Math.random();
+        this.latestSpeakId = speakId;
+
+        utterance.onstart = () => {
+            this.isSpeaking = true;
+            if (resumeListeningAfter) {
+                this.updateWidgetState('speaking');
+            } else {
+                this.updateWidgetState('processing');
+            }
+        };
+
         utterance.onend = () => {
+            if (this.latestSpeakId !== speakId) return;
+
             this.isSpeaking = false;
             
             if (!resumeListeningAfter) {
@@ -259,7 +272,8 @@ class JarvisCore {
         };
 
         utterance.onerror = (e) => {
-            console.warn("SpeechSynthesis error:", e);
+            if (this.latestSpeakId !== speakId) return;
+
             this.isSpeaking = false;
             if (!resumeListeningAfter) {
                 this.updateWidgetState('processing');
@@ -482,6 +496,7 @@ CONVERSACIÓN CONTINUA Y DESPEDIDA:
             stopBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 if (this.isSpeaking) {
+                    this.latestSpeakId = null;
                     this.synthesis.cancel();
                     this.isSpeaking = false;
                     this.updateWidgetState('listening');
